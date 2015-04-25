@@ -6,11 +6,11 @@
 <title></title>
 <style type="text/css">*{-webkit-touch-callout:none;-webkit-text-size-adjust:none;-webkit-tap-highlight-color:rgba(0,0,0,0);-webkit-user-select:none;-webkit-tap-highlight-color:rgba(0,0,0,0);}body{background-color:#000000;margin:0px;}canvas{display:block;position:absolute;}.container{width:auto;text-align:center;background-color:#ff0000;}</style>
 </head>
-<body onload="init()">
+<body onload="init()" onunload = "release()">
 	
 <script type="text/javascript" src="{{url_for('static', filename = 'js/socket.io.min.js') }}"></script>
 <script type="text/javascript" charset="utf-8">
-    var uid = Math.round(Math.random()*1000000);
+    var uid = 0;
 //    var socket = io.connect('http://' + document.domain + ':' + location.port);
 //    socket.on('connect', function() {
 //        socket.emit('user', {data: 'A user connected!', user : uid});
@@ -82,7 +82,39 @@ function resetCanvas (e) {
 }
 
 function init(){
-	
+    var xmlhttp;
+    if (window.XMLHttpRequest)
+    {
+        xmlhttp = new XMLHttpRequest();
+    }
+    else
+    {
+        xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+    }
+    xmlhttp.open("GET", "login", true);
+    xmlhttp.onreadystatechange = function()
+    {
+        if(xmlhttp.readyState == 4 && xmlhttp.status == 200)
+        {
+            uid = parseInt(xmlhttp.responseText);
+        }
+    }
+    xmlhttp.send();
+}
+
+function release(){
+    var xmlhttp;
+    if (window.XMLHttpRequest)
+    {
+        xmlhttp = new XMLHttpRequest();
+    }
+    else
+    {
+        xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+    }
+    xmlhttp.open("GET", "logout/" + uid.toString(), true);
+    xmlhttp.onreadystatechange = function(){}
+    xmlhttp.send();
 }
 
 function draw() {
@@ -100,7 +132,9 @@ function draw() {
     var x = leftVector.x/halfHeight*300;
     var y = -leftVector.y/halfHeight*300;
     var theta = Math.atan2(rightVector.x,(-rightVector.y+0.0001))/3.14159265*300;
-    xmlhttp.open("GET", "command/" + x.toString() + "," + y.toString() + "," + theta.toString(), true);
+    xmlhttp.open("GET", 
+            "command/" + uid.toString() + "," + x.toString() + "," + y.toString() + "," + theta.toString(), 
+            true);
     //xmlhttp.open("GET", "command", true);
     xmlhttp.send();
     drawCallBack();
