@@ -8,16 +8,16 @@
 </head>
 <body onload="init()">
 	
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>
+<script type="text/javascript" src="{{url_for('static', filename = 'js/socket.io.min.js') }}"></script>
 <script type="text/javascript" charset="utf-8">
-var uid = Math.round(Math.random()*1000000);
-    var socket = io.connect('http://' + document.domain + ':' + location.port);
-    socket.on('connect', function() {
-        socket.emit('user', {data: 'A user connected!', user : uid});
-    });
-    socket.on('disconnect', function() {
-        socket.emit('user', {data: 'A user disconnected!', user: uid});
-    });
+    var uid = Math.round(Math.random()*1000000);
+//    var socket = io.connect('http://' + document.domain + ':' + location.port);
+//    socket.on('connect', function() {
+//        socket.emit('user', {data: 'A user connected!', user : uid});
+//    });
+//    socket.on('disconnect', function() {
+//        socket.emit('user', {data: 'A user disconnected!', user: uid});
+//    });
 </script>
 
 	
@@ -55,7 +55,7 @@ var mouseX, mouseY,
 	
 document.body.appendChild(ship.canvas);
 
-setInterval(draw, 1000/35); 
+setInterval(draw, 1000/30); 
 
 
 if(touchable) {
@@ -88,97 +88,114 @@ function init(){
 function draw() {
   
 	c.clearRect(0,0,canvas.width, canvas.height); 
-	socket.emit('my event', {data: 'I\'m connected!', x: leftVector.x/halfHeight*300, y: -leftVector.y/halfHeight*300, theta: Math.atan2(rightVector.x,(-rightVector.y+0.0001))/3.14159265*300, user:uid});
-	ship.targetVel.copyFrom(leftVector);
-	ship.targetVel.multiplyEq(0.2);
-	ship.update(); 
-	with(ship.pos) {
-		if(x<0) x = canvas.width; 
-		else if(x>canvas.width) x = 0;
-		if(y<0) y = canvas.height; 
-		else if (y>canvas.height) y = 0; 
-	}
+    var xmlhttp;
+    if (window.XMLHttpRequest)
+    {
+        xmlhttp = new XMLHttpRequest();
+    }
+    else
+    {
+        xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+    }
+    var x = leftVector.x/halfHeight*300;
+    var y = -leftVector.y/halfHeight*300;
+    var theta = Math.atan2(rightVector.x,(-rightVector.y+0.0001))/3.14159265*300;
+    xmlhttp.open("GET", "command/" + x.toString() + "," + y.toString() + "," + theta.toString(), true);
+    //xmlhttp.open("GET", "command", true);
+    xmlhttp.send();
+    drawCallBack();
+	//socket.emit('my event', {data: 'I\'m connected!', x: leftVector.x/halfHeight*300, y: -leftVector.y/halfHeight*300, theta: Math.atan2(rightVector.x,(-rightVector.y+0.0001))/3.14159265*300, user:uid});
 	
-	ship.draw(); 
-	
-	
-	for (var i = 0; i < bullets.length; i++) {
-		var bullet = bullets[i]; 
-		if(!bullet.enabled) continue; 
-		bullet.update(); 
-		bullet.draw(c); 
-		if(!bullet.enabled)
-		{
-			spareBullets.push(bullet); 
-			
-		}
-		
-		
-	}
-	
-	if(touchable) {
-	
-		for(var i=0; i<touches.length; i++) {
-			
-			var touch = touches[i]; 
-			
-			if(touch.identifier == leftTouchID){
-				c.beginPath(); 
-				c.strokeStyle = "cyan"; 
-				c.lineWidth = 6; 
-				c.arc(leftTouchStartPos.x, leftTouchStartPos.y, 40,0,Math.PI*2,true); 
-				c.stroke();
-				c.beginPath(); 
-				c.strokeStyle = "cyan"; 
-				c.lineWidth = 2; 
-				c.arc(leftTouchStartPos.x, leftTouchStartPos.y, 60,0,Math.PI*2,true); 
-				c.stroke();
-				c.beginPath(); 
-				c.strokeStyle = "cyan"; 
-				c.arc(leftTouchPos.x, leftTouchPos.y, 40, 0,Math.PI*2, true); 
-				c.stroke(); 
-				
-			} else {
-				
-				if (touch.identifier == rightTouchID) {
-					c.beginPath(); 
-					c.strokeStyle = "red"; 
-					c.lineWidth = 6; 
-					c.arc(rightTouchStartPos.x, rightTouchStartPos.y, 40,0,Math.PI*2,true); 
-					c.stroke();
-					c.beginPath(); 
-					c.strokeStyle = "red"; 
-					c.lineWidth = 2; 
-					c.arc(rightTouchStartPos.x, rightTouchStartPos.y, 60,0,Math.PI*2,true); 
-					c.stroke();
-					c.beginPath(); 
-					c.strokeStyle = "red"; 
-					c.arc(rightTouchPos.x, rightTouchPos.y, 40, 0,Math.PI*2, true); 
-					c.stroke(); 					
-				}
-				else
-				{
-				
-				//c.beginPath(); 
-				//c.fillStyle = "white";
-				//c.fillText("touch id : "+touch.identifier+" x:"+touch.clientX+" y:"+touch.clientY, touch.clientX+30, touch.clientY-30); 
+}
+
+function drawCallBack(){
+    ship.targetVel.copyFrom(leftVector);
+    ship.targetVel.multiplyEq(0.2);
+    ship.update(); 
+    with(ship.pos) {
+        if(x<0) x = canvas.width; 
+        else if(x>canvas.width) x = 0;
+        if(y<0) y = canvas.height; 
+        else if (y>canvas.height) y = 0; 
+    }
+    
+    ship.draw(); 
+    
+    for (var i = 0; i < bullets.length; i++) {
+        var bullet = bullets[i]; 
+        if(!bullet.enabled) continue; 
+        bullet.update(); 
+        bullet.draw(c); 
+        if(!bullet.enabled)
+        {
+            spareBullets.push(bullet); 
+            
+        }
+    }
+    
+    if(touchable) {
+    
+        for(var i=0; i<touches.length; i++) {
+            
+            var touch = touches[i]; 
+            
+            if(touch.identifier == leftTouchID){
+                c.beginPath(); 
+                c.strokeStyle = "cyan"; 
+                c.lineWidth = 6; 
+                c.arc(leftTouchStartPos.x, leftTouchStartPos.y, 40,0,Math.PI*2,true); 
+                c.stroke();
+                c.beginPath(); 
+                c.strokeStyle = "cyan"; 
+                c.lineWidth = 2; 
+                c.arc(leftTouchStartPos.x, leftTouchStartPos.y, 60,0,Math.PI*2,true); 
+                c.stroke();
+                c.beginPath(); 
+                c.strokeStyle = "cyan"; 
+                c.arc(leftTouchPos.x, leftTouchPos.y, 40, 0,Math.PI*2, true); 
+                c.stroke(); 
+                
+            } else {
+                
+                if (touch.identifier == rightTouchID) {
+                    c.beginPath(); 
+                    c.strokeStyle = "red"; 
+                    c.lineWidth = 6; 
+                    c.arc(rightTouchStartPos.x, rightTouchStartPos.y, 40,0,Math.PI*2,true); 
+                    c.stroke();
+                    c.beginPath(); 
+                    c.strokeStyle = "red"; 
+                    c.lineWidth = 2; 
+                    c.arc(rightTouchStartPos.x, rightTouchStartPos.y, 60,0,Math.PI*2,true); 
+                    c.stroke();
+                    c.beginPath(); 
+                    c.strokeStyle = "red"; 
+                    c.arc(rightTouchPos.x, rightTouchPos.y, 40, 0,Math.PI*2, true); 
+                    c.stroke(); 					
+                }
+                else
+                {
+                
+                //c.beginPath(); 
+                //c.fillStyle = "white";
+                //c.fillText("touch id : "+touch.identifier+" x:"+touch.clientX+" y:"+touch.clientY, touch.clientX+30, touch.clientY-30); 
                 //
-				//c.beginPath(); 
-				//c.strokeStyle = "red";
-				//c.lineWidth = "6";
-				//c.arc(touch.clientX, touch.clientY, 40, 0, Math.PI*2, true); 
-				//c.stroke();
-				}
-			}
-		}
-	} else {
-		
-		c.fillStyle	 = "white"; 
-		c.fillText("mouse : "+mouseX+", "+mouseY, mouseX, mouseY); 
-		
-	}
-	//c.fillText("hello", 0,0); 
-	
+                //c.beginPath(); 
+                //c.strokeStyle = "red";
+                //c.lineWidth = "6";
+                //c.arc(touch.clientX, touch.clientY, 40, 0, Math.PI*2, true); 
+                //c.stroke();
+                }
+            }
+        }
+    } else {
+        
+        c.fillStyle	 = "white"; 
+        c.fillText("mouse : "+mouseX+", "+mouseY, mouseX, mouseY); 
+        
+    }
+    //c.fillText("hello", 0,0); 
+
 }
 
 function makeBullet() {
